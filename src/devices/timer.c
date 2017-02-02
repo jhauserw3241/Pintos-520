@@ -30,6 +30,9 @@ static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
 
+// Project 1 attempt changes
+static struct semaphore sema;
+
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
 void
@@ -92,8 +95,10 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
+  /*while (timer_elapsed (start) < ticks) 
     thread_yield ();
+    */
+  sema_init(&sema, 1);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
