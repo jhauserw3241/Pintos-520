@@ -92,6 +92,8 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
+  printf("Start timer_sleep()\n");
+
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
@@ -104,6 +106,8 @@ timer_sleep (int64_t ticks)
   thread_block();
   
   intr_set_level(old_level);
+
+  printf("End timer_sleep()\n");
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -180,16 +184,20 @@ timer_print_stats (void)
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
+  printf("Start timer_interrupt()\n");
 //  thread_unblock(thread_current());
 
   ticks++;
   thread_tick ();
 
   struct thread* t = thread_current();
-  if (t->wait_ticks <= ticks)
+  if ((t->wait_ticks >= 0) && (t->wait_ticks <= ticks))
   {
+    printf("Number of ticks in wait_ticks: %d\n", t->wait_ticks);
     thread_unblock(t);
   }
+
+  printf("End timer_interrupt()\n");
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
