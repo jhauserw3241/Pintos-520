@@ -63,6 +63,7 @@ static void sleeper (void *);
 static void
 test_sleep (int thread_cnt, int iterations) 
 {
+  printf("Start test_sleep()\n");
   struct sleep_test test;
   struct sleep_thread *threads;
   int *output, *op;
@@ -144,6 +145,7 @@ test_sleep (int thread_cnt, int iterations)
   lock_release (&test.output_lock);
   free (output);
   free (threads);
+  printf("End test_sleep()\n");
 }
 
 /* Sleeper thread. */

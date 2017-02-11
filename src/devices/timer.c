@@ -30,8 +30,7 @@ static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
 
-//// Project 1 attempt changes
-//struct semaphore sema;
+struct list sleep_list;
 
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
@@ -40,6 +39,8 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+
+  list_init(&sleep_list);
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -92,22 +93,26 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
-  printf("Start timer_sleep()\n");
-
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-  //while (timer_elapsed (start) < ticks) 
-  //  thread_yield ();
+  /*while (timer_elapsed (start) < ticks) 
+    thread_yield ();*/
 
   enum intr_level old_level = intr_disable();
 
-  thread_current()->wait_ticks = start + ticks;
+  struct thread* t = thread_current();
+  t->wait_ticks = start + ticks;
+
+  list_insert_ordered(&sleep_list, &t->elem, );
   thread_block();
   
   intr_set_level(old_level);
+}
 
-  printf("End timer_sleep()\n");
+bool get_thread_ticks_min(const struct thread* t1, const struct thread* t2)
+{
+  return t1->wait_ticks < t2->wait_ticks;
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -179,14 +184,11 @@ timer_print_stats (void)
 {
   printf ("Timer: %"PRId64" ticks\n", timer_ticks ());
 }
-
+
 /* Timer interrupt handler. */
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
-  printf("Start timer_interrupt()\n");
-//  thread_unblock(thread_current());
-
   ticks++;
   thread_tick ();
 
@@ -196,8 +198,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
     printf("Number of ticks in wait_ticks: %d\n", t->wait_ticks);
     thread_unblock(t);
   }
-
-  printf("End timer_interrupt()\n");
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
