@@ -341,6 +341,15 @@ thread_foreach (thread_action_func *func, void *aux)
     }
 }
 
+/* Determines if the first thread has less ticks than the first thread */
+bool thread_get_ticks_min(struct list_elem* a, struct list_elem* b, void* aux)
+{
+  struct thread* a_t = list_entry(a, struct thread, elem);
+  struct thread* b_t = list_entry(b, struct thread, elem);
+
+  return a_t->wait_ticks < b_t->wait_ticks;
+}
+
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) 

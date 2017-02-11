@@ -104,15 +104,10 @@ timer_sleep (int64_t ticks)
   struct thread* t = thread_current();
   t->wait_ticks = start + ticks;
 
-  list_insert_ordered(&sleep_list, &t->elem, );
+  list_insert_ordered(&sleep_list, &t->elem, thread_get_ticks_min, NULL);
   thread_block();
   
   intr_set_level(old_level);
-}
-
-bool get_thread_ticks_min(const struct thread* t1, const struct thread* t2)
-{
-  return t1->wait_ticks < t2->wait_ticks;
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -192,11 +187,19 @@ timer_interrupt (struct intr_frame *args UNUSED)
   ticks++;
   thread_tick ();
 
-  struct thread* t = thread_current();
-  if ((t->wait_ticks >= 0) && (t->wait_ticks <= ticks))
-  {
-    printf("Number of ticks in wait_ticks: %d\n", t->wait_ticks);
-    thread_unblock(t);
+  struct list_elem* e = list_begin(&sleep_list);
+  while(e != list_end(&sleep_list)) {
+    struct thread* t = list_entry(e, struct thread, elem);
+    //struct thread* t = thread_current();
+    if ((t->wait_ticks >= 0) && (t->wait_ticks <= ticks))
+    {
+      list_remove(e); // Remove from wait list
+
+      printf("Number of ticks in wait_ticks: %d\n", t->wait_ticks);
+      thread_unblock(t);
+
+      e = list_begin(&sleep_list);
+    }
   }
 }
 
