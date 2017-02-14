@@ -191,7 +191,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
   
   //inspriration from https://github.com/ryantimwilson/Pintos-Project-1/blob/master/src/devices/timer.c
   struct list_elem* e = list_begin(&sleep_list);
-  while(e != list_end(&sleep_list)) {
+  while(!list_empty(&sleep_list)) {
     struct thread* t = list_entry(e, struct thread, elem);
     //struct thread* t = thread_current();
     if (ticks < t->wait_ticks)
