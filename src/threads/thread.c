@@ -242,13 +242,18 @@ void
 thread_unblock (struct thread *t)
 {
   enum intr_level old_level;
-
+  struct thread *cur = current_thread();
   ASSERT (is_thread (t));
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
+
+  // PUt code here
+  /*if (cur->priority < t->priority)
+    thread_yield();*/
+
   intr_set_level (old_level);
 }
 
@@ -321,6 +326,33 @@ thread_yield (void)
     list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
+  intr_set_level (old_level);
+}
+
+/* Returns true if thread a has lower priority than thread b, within a list of threads. */
+bool thread_lower_priority (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED)
+{
+  const struct thread *a = list_entry (a_, struct thread, elem);
+  const struct thread *b = list_entry (b_, struct thread, elem);
+  return a->priority < b->priority;
+}
+
+/* If the ready list contains a thread with a higher priority, yields to it. */
+void thread_yield_to_higher_priority (void)
+{
+  enum intr_level old_level = intr_disable ();
+  if (!list_empty (&ready_list))
+  {
+    struct thread *cur = thread_current ();
+    struct thread *max = list_entry (list_max (&ready_list, thread_lower_priority, NULL), struct thread, elem);
+    if (max->priority > cur->priority)
+    {
+      if (intr_context ())
+        intr_yield_on_return ();
+      else
+        thread_yield ();
+    }
+  }
   intr_set_level (old_level);
 }
 
