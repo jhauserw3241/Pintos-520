@@ -98,7 +98,7 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
-  initial_thread->wait_ticks = -1;
+  //initial_thread->wait_ticks = -1;
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -215,6 +215,8 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
+
+  // We used the following GitHub for help figuring out the interrupt disable step:  https://github.com/ryantimwilson/Pintos-Project-1/blob/master/src/threads/thread.c
   old_level = intr_disable();
   thread_yield_to_higher_priority();
   intr_set_level(old_level);
@@ -232,7 +234,6 @@ void
 thread_block (void)
 {
   ASSERT (!intr_context ());
-  //printf(intr_get_level());
   ASSERT (intr_get_level () == INTR_OFF);
 
   thread_current ()->status = THREAD_BLOCKED;
@@ -251,20 +252,18 @@ void
 thread_unblock (struct thread *t)
 {
   enum intr_level old_level;
-  //struct thread *cur = thread_current();
+
   ASSERT (is_thread (t));
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_insert_ordered(&ready_list, &t->elem, thread_lower_priority, NULL);
-  //list_push_back (&ready_list, &t->elem);
+
+  list_insert_ordered(&ready_list,
+  		      &t->elem,
+		      thread_lower_priority,
+		      NULL);
+
   t->status = THREAD_READY;
-
-  //thread_yield_to_higher_priority();
-  // PUt code here
-  /*if (cur->priority < t->priority)
-    thread_yield();*/
-
   intr_set_level (old_level);
 }
 
@@ -336,13 +335,15 @@ thread_yield (void)
   if (cur != idle_thread)
     list_insert_ordered(&ready_list, &cur->elem, thread_lower_priority, NULL);
     //list_push_back (&ready_list, &cur->elem);
+
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
 }
 
 /* Returns true if thread a has lower priority than thread b, within a list of threads. */
-bool thread_lower_priority (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED)
+bool
+thread_lower_priority (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED)
 {
   const struct thread *a = list_entry (a_, struct thread, elem);
   const struct thread *b = list_entry (b_, struct thread, elem);
@@ -350,7 +351,8 @@ bool thread_lower_priority (const struct list_elem *a_, const struct list_elem *
 }
 
 /* If the ready list contains a thread with a higher priority, yields to it. */
-void thread_yield_to_higher_priority (void)
+void
+thread_yield_to_higher_priority (void)
 {
   enum intr_level old_level = intr_disable ();
   if (!list_empty (&ready_list))
@@ -386,7 +388,8 @@ thread_foreach (thread_action_func *func, void *aux)
 }
 
 /* Determines if the first thread has less ticks than the first thread */
-bool thread_get_ticks_min(struct list_elem* a, struct list_elem* b, void* aux)
+bool
+thread_get_ticks_min(struct list_elem* a, struct list_elem* b, void* aux)
 {
   struct thread* a_t = list_entry(a, struct thread, elem);
   struct thread* b_t = list_entry(b, struct thread, elem);
@@ -398,15 +401,19 @@ bool thread_get_ticks_min(struct list_elem* a, struct list_elem* b, void* aux)
 void
 thread_set_priority (int new_priority)
 {
+  enum intr_level old_level = intr_disable();
   thread_current ()->priority = new_priority;
-  //thread_yield_to_higher_priority();
+  intr_set_level(old_level);
 }
 
 /* Returns the current thread's priority. */
 int
 thread_get_priority (void)
 {
-  return thread_current ()->priority;
+  enum intr_level old_level = intr_disable();
+  int prio = thread_current ()->priority;
+  intr_set_level(old_level);
+  return prio;
 }
 
 /* Sets the current thread's nice value to NICE. */
