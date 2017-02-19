@@ -185,6 +185,11 @@ thread_create (const char *name, int priority,
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
 
+  ASSERT(t->priority == 31);
+  ASSERT(t->priority == 32);
+  ASSERT(t->priority == 33);
+  ASSERT(t->priority == priority);
+
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack'
      member cannot be observed. */
@@ -209,6 +214,8 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+
+  thread_yield_to_higher_priority();
 
   return tid;
 }
@@ -242,18 +249,13 @@ void
 thread_unblock (struct thread *t)
 {
   enum intr_level old_level;
-  struct thread *cur = current_thread();
+  
   ASSERT (is_thread (t));
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
-
-  // PUt code here
-  /*if (cur->priority < t->priority)
-    thread_yield();*/
-
   intr_set_level (old_level);
 }
 
