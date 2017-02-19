@@ -215,7 +215,6 @@ thread_create (const char *name, int priority,
   // We used the following GitHub for help figuring out the interrupt disable step:  https://github.com/ryantimwilson/Pintos-Project-1/blob/master/src/threads/thread.c
   old_level = intr_disable();
   thread_yield_to_higher_priority();
-  (struct lock)aux->holder = current_thread();
   intr_set_level(old_level);
 
   return tid;
@@ -256,7 +255,7 @@ thread_unblock (struct thread *t)
   ASSERT (t->status == THREAD_BLOCKED);
   list_insert_ordered(&ready_list,
   		      &t->elem,
-		      thread_lower_priority,
+		      thread_higher_priority,
 		      NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
@@ -331,7 +330,7 @@ thread_yield (void)
   {
     list_insert_ordered(&ready_list,
     			&cur->elem,
-			thread_lower_priority,
+			thread_higher_priority,
 			NULL);
   }
   cur->status = THREAD_READY;
@@ -341,7 +340,7 @@ thread_yield (void)
 
 /* Returns true if thread a has lower priority than thread b, within a list of threads. */
 bool
-thread_lower_priority (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED)
+thread_higher_priority (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED)
 {
   const struct thread *a = list_entry (a_, struct thread, elem);
   const struct thread *b = list_entry (b_, struct thread, elem);
@@ -356,7 +355,7 @@ thread_yield_to_higher_priority (void)
   if (!list_empty (&ready_list))
   {
     struct thread *cur = thread_current ();
-    struct thread *max = list_entry (list_max (&ready_list, thread_lower_priority, NULL), struct thread, elem);
+    struct thread *max = list_entry (list_max (&ready_list, thread_higher_priority, NULL), struct thread, elem);
     if (max->priority > cur->priority)
     {
       if (intr_context ())

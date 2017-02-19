@@ -129,7 +129,7 @@ void thread_exit (void) NO_RETURN;
 void thread_yield (void);
 
 // Used to switch threads to higher priority
-bool thread_lower_priority (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED);
+bool thread_higher_priority (const struct list_elem *a_, const struct list_elem *b_, void *aux UNUSED);
 void thread_yield_to_higher_priority (void);
 
 /* Performs some operation on thread t, given auxiliary data AUX. */
