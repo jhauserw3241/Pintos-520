@@ -182,7 +182,7 @@ thread_create (const char *name, int priority,
     return TID_ERROR;
 
   /* Initialize thread. */
-  printf("%d in create thread sadsadasdasdasdsaasdasdasdsa\n ", priority);
+  //printf("%d in create thread sadsadasdasdasdsaasdasdasdsa\n ", priority);
 
   init_thread (t, name, priority);
   //thread_set_priority(priority);
@@ -208,14 +208,16 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
-  //thread_yield_to_higher_priority();
 
   intr_set_level (old_level);
 
 
-
   /* Add to run queue. */
   thread_unblock (t);
+
+  old_level = intr_disable();
+  thread_yield_to_higher_priority();
+  intr_set_level(old_level);
 
   return tid;
 }
@@ -254,8 +256,8 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  //list_insert_ordered(&ready_list, &t->elem, thread_lower_priority, NULL);
-  list_push_back (&ready_list, &t->elem);
+  list_insert_ordered(&ready_list, &t->elem, thread_lower_priority, NULL);
+  //list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
 
   //thread_yield_to_higher_priority();
@@ -332,8 +334,8 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread)
-    //list_insert_ordered(&ready_list, &cur->elem, thread_lower_priority, NULL);
-    list_push_back (&ready_list, &cur->elem);
+    list_insert_ordered(&ready_list, &cur->elem, thread_lower_priority, NULL);
+    //list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -517,7 +519,7 @@ init_thread (struct thread *t, const char *name, int priority)
   ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
   ASSERT (name != NULL);
 
-  printf("%d in init thread sdasdasdasdasdasdasdasd \n", priority);
+  //printf("%d in init thread sdasdasdasdasdasdasdasd \n", priority);
 
   memset (t, 0, sizeof *t);
   t->status = THREAD_BLOCKED;
