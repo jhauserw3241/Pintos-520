@@ -257,7 +257,6 @@ thread_unblock (struct thread *t)
 
   list_insert_ordered(&ready_list,
   		      &t->elem,
-		      //(list_less_func *) &thread_lower_priority,
 		      thread_lower_priority,
 		      NULL);
 
@@ -336,7 +335,6 @@ thread_yield (void)
 
     list_insert_ordered(&ready_list,
     			&cur->elem,
-			//(list_less_func *) &thread_lower_priority,
 			thread_lower_priority,
 			NULL);
   }
