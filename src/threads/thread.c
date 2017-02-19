@@ -182,7 +182,10 @@ thread_create (const char *name, int priority,
     return TID_ERROR;
 
   /* Initialize thread. */
+  printf("%d in create thread sadsadasdasdasdsaasdasdasdsa\n ", priority);
+
   init_thread (t, name, priority);
+  //thread_set_priority(priority);
   tid = t->tid = allocate_tid ();
 
   /* Prepare thread for first run by initializing its stack.
@@ -205,7 +208,11 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
+  //thread_yield_to_higher_priority();
+
   intr_set_level (old_level);
+
+
 
   /* Add to run queue. */
   thread_unblock (t);
@@ -242,14 +249,16 @@ void
 thread_unblock (struct thread *t)
 {
   enum intr_level old_level;
-  struct thread *cur = current_thread();
+  //struct thread *cur = thread_current();
   ASSERT (is_thread (t));
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
+  //list_insert_ordered(&ready_list, &t->elem, thread_lower_priority, NULL);
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
 
+  //thread_yield_to_higher_priority();
   // PUt code here
   /*if (cur->priority < t->priority)
     thread_yield();*/
@@ -323,6 +332,7 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread)
+    //list_insert_ordered(&ready_list, &cur->elem, thread_lower_priority, NULL);
     list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
@@ -334,7 +344,7 @@ bool thread_lower_priority (const struct list_elem *a_, const struct list_elem *
 {
   const struct thread *a = list_entry (a_, struct thread, elem);
   const struct thread *b = list_entry (b_, struct thread, elem);
-  return a->priority < b->priority;
+  return a->priority > b->priority;
 }
 
 /* If the ready list contains a thread with a higher priority, yields to it. */
@@ -387,6 +397,7 @@ void
 thread_set_priority (int new_priority)
 {
   thread_current ()->priority = new_priority;
+  //thread_yield_to_higher_priority();
 }
 
 /* Returns the current thread's priority. */
@@ -506,11 +517,14 @@ init_thread (struct thread *t, const char *name, int priority)
   ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
   ASSERT (name != NULL);
 
+  printf("%d in init thread sdasdasdasdasdasdasdasd \n", priority);
+
   memset (t, 0, sizeof *t);
   t->status = THREAD_BLOCKED;
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
+  //thread_set_priority(priority);
   t->orig_priority = priority;
   t->magic = THREAD_MAGIC;
   t->wait_ticks = -1;
@@ -541,7 +555,9 @@ next_thread_to_run (void)
   if (list_empty (&ready_list))
     return idle_thread;
   else
+  {
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  }
 }
 
 /* Completes a thread switch by activating the new thread's page
