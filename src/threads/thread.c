@@ -411,9 +411,9 @@ thread_set_priority (int new_priority)
   enum intr_level old_level = intr_disable();
   struct thread *t = thread_current();
   t->priority = new_priority;
-  reset_priority();
+  //reset_priority();
 
-  //update_current_priority_thread();
+  //update_current_thread_priority();
 
   if (t->orig_priority < t->priority)
     donate_priority();
@@ -543,14 +543,11 @@ init_thread (struct thread *t, const char *name, int priority)
   ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
   ASSERT (name != NULL);
 
-  //printf("%d in init thread sdasdasdasdasdasdasdasd \n", priority);
-
   memset (t, 0, sizeof *t);
   t->status = THREAD_BLOCKED;
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
-  //thread_set_priority(priority);
   t->orig_priority = priority;
   t->magic = THREAD_MAGIC;
   t->wait_ticks = -1;
