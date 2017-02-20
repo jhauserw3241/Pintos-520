@@ -151,4 +151,8 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
+void donate_priority(void);
+void remove_from_donation_list(void);
+void update_current_thread_priority(void);
+
 #endif /* threads/thread.h */
