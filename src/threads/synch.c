@@ -272,11 +272,11 @@ lock_release (struct lock *lock)
 
   if (!thread_mlfqs)
     {
-      //remove_with_lock(lock);
-      //// ^ Removes threads from donation list waiting for released lock
-      //reset_priority();
-      //// ^ Updates priority
-      remove_from_donation_list();
+      remove_with_lock(lock);
+      // ^ Removes threads from donation list waiting for released lock
+      reset_priority();
+      // ^ Updates priority
+      //remove_from_donation_list();
     }
 
   sema_up (&lock->semaphore);

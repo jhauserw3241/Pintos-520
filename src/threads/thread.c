@@ -411,9 +411,9 @@ thread_set_priority (int new_priority)
   enum intr_level old_level = intr_disable();
   struct thread *t = thread_current();
   t->priority = new_priority;
-  //reset_priority();
+  reset_priority();
 
-
+  //update_current_priority_thread();
 
   if (t->orig_priority < t->priority)
     donate_priority();
@@ -709,7 +709,7 @@ donate_priority (void)
   }
 }
 
-/*void
+void
 remove_with_lock(struct lock *lock)
 {
   struct list_elem *e = list_begin(&thread_current()->donations);
@@ -741,7 +741,7 @@ reset_priority (void)
   {
     t->priority = s->priority;
   }
-}*/
+}
 
 /* Remove all elements from donation list and reset them to their original priority. */
 void

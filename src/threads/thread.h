@@ -155,4 +155,7 @@ void donate_priority(void);
 void remove_from_donation_list(void);
 void update_current_thread_priority(void);
 
+void remove_with_lock(struct lock *lock);
+void reset_priority(void);
+
 #endif /* threads/thread.h */
